@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matplotlib 可视化样例</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f6fa;
+            color: #2d3436;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        .color-scheme-selector {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .color-preview {
+            width: 200px;
+            height: 30px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .color-scheme-selector select {
+            padding: 8px 15px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            background: white;
+        }
+        .color-scheme-selector button {
+            padding: 8px 20px;
+            font-size: 1em;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .color-scheme-selector button:hover {
+            background: #2980b9;
+        }
+        .plot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .plot-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .plot-card:hover {
+            transform: translateY(-5px);
+        }
+        .plot-title {
+            font-size: 1.2em;
+            color: #34495e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .plot-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .code-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .copy-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Matplotlib 可视化样例集</h1>
+        <div class="color-scheme-selector">
+            <select id="colorScheme">
+                {% for scheme in color_schemes %}
+                <option value="{{ scheme }}" {% if scheme == current_scheme %}selected{% endif %}>{{ scheme }}</option>
+                {% endfor %}
+            </select>
+            <div class="color-preview" id="colorPreview"></div>
+            <button onclick="updateColorScheme()">应用配色方案</button>
+        </div>
+        <div class="plot-grid">
+            <!-- 折线图 -->
+            <div class="plot-card">
+                <h2 class="plot-title">优雅的正弦曲线</h2>
+                <img class="plot-image" src="data:image/png;base64,{{ plots['line'] }}" alt="Line Chart">
+                <div class="code-section">
+# 绘制优雅的正弦曲线
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+plt.plot(x, y, color='#2ecc71', linewidth=2)
+plt.title('优雅的正弦曲线', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.fill_between(x, y, alpha=0.2)</div>
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+            </div>
+            
+            <!-- 其他图表卡片保持不变 -->
+            {% for plot_name, plot_data in plots.items() %}
+                {% if plot_name != 'line' %}
+                <div class="plot-card">
+                    <h2 class="plot-title">{{ plot_name|title }}</h2>
+                    <img class="plot-image" src="data:image/png;base64,{{ plot_data }}" alt="{{ plot_name|title }} Plot">
+                    <div class="code-section">
+                    {% if plot_name == 'bar' %}
+# 绘制多彩柱状图
+categories = ['A', 'B', 'C', 'D', 'E']
+values = np.random.randint(10, 50, size=5)
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/4) for i in range(5)]
+plt.bar(categories, values, color=colors)
+plt.title('多彩柱状图', fontsize=14)
+for i, v in enumerate(values):
+    plt.text(i, v + 1, str(v), ha='center')
+                    {% elif plot_name == 'scatter' %}
+# 绘制渐变色散点图
+np.random.seed(42)
+x = np.random.normal(0, 1, 100)
+y = x + np.random.normal(0, 0.4, 100)
+plt.scatter(x, y, c=y, cmap=COLOR_SCHEMES[color_scheme], alpha=0.6)
+plt.colorbar(label='值')
+plt.title('渐变色散点图', fontsize=14)
+                    {% elif plot_name == 'pie' %}
+# 绘制精美饼图
+labels = ['A', 'B', 'C', 'D']
+sizes = [15, 30, 45, 10]
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/3) for i in range(4)]
+explode = (0.1, 0, 0, 0)
+plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+        autopct='%1.1f%%', shadow=True, startangle=90)
+plt.title('精美饼图', fontsize=14)
+                    {% elif plot_name == 'box' %}
+# 绘制箱线图
+np.random.seed(42)
+data = [np.random.normal(0, std, 100) for std in range(1, 4)]
+plt.boxplot(data, patch_artist=True,
+            boxprops=dict(facecolor=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6), color='black'),
+            whiskerprops=dict(color='black'),
+            capprops=dict(color='black'),
+            medianprops=dict(color='white'))
+plt.title('箱线图分布', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% elif plot_name == 'heatmap' %}
+# 绘制热力图
+data = np.random.rand(8, 8)
+sns.heatmap(data, cmap=COLOR_SCHEMES[color_scheme], annot=True, fmt='.2f')
+plt.title('热力图展示', fontsize=14)
+                    {% elif plot_name == 'violin' %}
+# 绘制小提琴图
+np.random.seed(42)
+data = [np.random.normal(0, std, 100) for std in range(1, 4)]
+parts = plt.violinplot(data)
+for pc in parts['bodies']:
+    pc.set_facecolor(plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6))
+    pc.set_alpha(0.7)
+plt.title('小提琴图', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% elif plot_name == '3d_surface' %}
+# 绘制3D曲面图
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+x = np.linspace(-3, 3, 100)
+y = np.linspace(-3, 3, 100)
+X, Y = np.meshgrid(x, y)
+Z = np.sin(np.sqrt(X**2 + Y**2))
+surf = ax.plot_surface(X, Y, Z, cmap=color_scheme)
+plt.colorbar(surf)
+plt.title('3D曲面图', fontsize=14)
+                    {% elif plot_name == 'radar' %}
+# 绘制雷达图
+categories = ['A', 'B', 'C', 'D', 'E']
+values = np.random.randint(50, 100, size=5)
+angles = np.linspace(0, 2*np.pi, len(categories), endpoint=False)
+values = np.concatenate((values, [values[0]]))
+angles = np.concatenate((angles, [angles[0]]))
+plt.polar(angles, values, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6))
+plt.fill(angles, values, alpha=0.25, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.3))
+plt.title('雷达图', fontsize=14)
+                    {% elif plot_name == 'bubble' %}
+# 绘制气泡图
+np.random.seed(42)
+x = np.random.rand(20)
+y = np.random.rand(20)
+size = np.random.rand(20) * 500
+colors = np.random.rand(20)
+plt.scatter(x, y, s=size, c=colors, alpha=0.6, cmap=color_scheme)
+plt.colorbar(label='颜色值')
+plt.title('气泡图', fontsize=14)
+                    {% elif plot_name == 'density' %}
+# 绘制核密度图
+np.random.seed(42)
+data = np.random.normal(0, 1, 1000)
+sns.kdeplot(data=data, fill=True, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6))
+plt.title('核密度图', fontsize=14)
+                    {% elif plot_name == 'ridgeline' %}
+# 绘制脊线图
+np.random.seed(42)
+data = [np.random.normal(i, 1, 100) for i in range(5)]
+for i, d in enumerate(data):
+    sns.kdeplot(data=d, fill=True, alpha=0.5, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/4))
+plt.title('脊线图', fontsize=14)
+                    {% elif plot_name == 'stream' %}
+# 绘制流图
+t = np.linspace(0, 10, 100)
+data = np.array([np.sin(t + phase) for phase in [0, 0.5, 1]])
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/2) for i in range(3)]
+plt.stackplot(t, data + 2, labels=['A', 'B', 'C'], colors=colors)
+plt.title('流图', fontsize=14)
+plt.legend()
+                    {% elif plot_name == 'andrews_curves' %}
+# 绘制Andrews曲线
+data = pd.DataFrame(np.random.randn(10, 4), columns=['A', 'B', 'C', 'D'])
+pd.plotting.andrews_curves(data, 'A', colormap=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme]))
+plt.title('Andrews曲线', fontsize=14)
+                    {% elif plot_name == 'parallel_coordinates' %}
+# 绘制平行坐标图
+data = pd.DataFrame({
+    'A': np.random.randint(1, 4, 10),
+    'B': np.random.randn(10),
+    'C': np.random.randn(10),
+    'D': np.random.randn(10)
+})
+data['A'] = data['A'].astype(str)
+pd.plotting.parallel_coordinates(
+    data, 
+    'A',
+    color=[plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i) for i in np.linspace(0, 1, len(data['A'].unique()))]
+)
+plt.title('平行坐标图', fontsize=14)
+                    {% elif plot_name == 'lag_plot' %}
+# 绘制滞后图
+data = pd.Series(np.random.randn(1000))
+pd.plotting.lag_plot(data, c=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6))
+plt.title('滞后图', fontsize=14)
+                    {% elif plot_name == 'autocorrelation' %}
+# 绘制自相关图
+data = pd.Series(np.random.randn(1000))
+pd.plotting.autocorrelation_plot(data)
+plt.gca().lines[0].set_color(plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6))
+plt.title('自相关图', fontsize=14)
+                    {% elif plot_name == 'horizontal_bar' %}
+# 绘制水平柱状图
+categories = ['A', 'B', 'C', 'D', 'E']
+values = np.random.randint(10, 50, size=5)
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/4) for i in range(5)]
+plt.barh(categories, values, color=colors)
+plt.title('水平柱状图', fontsize=14)
+for i, v in enumerate(values):
+    plt.text(v + 1, i, str(v), va='center')
+                    {% elif plot_name == 'stacked_bar' %}
+# 绘制堆叠柱状图
+categories = ['A', 'B', 'C', 'D']
+data = np.random.randint(10, 30, size=(3, 4))
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/2) for i in range(3)]
+bottom = np.zeros(4)
+for i, row in enumerate(data):
+    plt.bar(categories, row, bottom=bottom, color=colors[i], label=f'Group {i+1}')
+    bottom += row
+plt.title('堆叠柱状图', fontsize=14)
+plt.legend()
+                    {% elif plot_name == 'grouped_bar' %}
+# 绘制分组柱状图
+categories = ['A', 'B', 'C', 'D']
+data = np.random.randint(10, 30, size=(3, 4))
+x = np.arange(len(categories))
+width = 0.25
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/2) for i in range(3)]
+for i in range(3):
+    plt.bar(x + i*width, data[i], width, color=colors[i], label=f'Group {i+1}')
+plt.xticks(x + width, categories)
+plt.title('分组柱状图', fontsize=14)
+plt.legend()
+                    {% elif plot_name == 'donut' %}
+# 绘制环形图
+labels = ['A', 'B', 'C', 'D']
+sizes = [15, 30, 45, 10]
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/3) for i in range(4)]
+plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%',
+        pctdistance=0.85, wedgeprops=dict(width=0.5))
+plt.title('环形图', fontsize=14)
+                    {% elif plot_name == 'histogram' %}
+# 绘制直方图
+np.random.seed(42)
+data = np.random.normal(0, 1, 1000)
+plt.hist(data, bins=30, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6),
+         alpha=0.7, edgecolor='black')
+plt.title('直方图', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% elif plot_name == 'area' %}
+# 绘制面积图
+x = np.linspace(0, 10, 100)
+y = np.sin(x) + 2
+plt.fill_between(x, y, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6), alpha=0.5)
+plt.plot(x, y, color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.8))
+plt.title('面积图', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% elif plot_name == 'stacked_area' %}
+# 绘制堆叠面积图
+x = np.linspace(0, 10, 100)
+y1 = np.sin(x) + 2
+y2 = np.cos(x) + 2
+y3 = np.sin(x + np.pi/4) + 2
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/2) for i in range(3)]
+plt.stackplot(x, [y1, y2, y3], colors=colors, labels=['A', 'B', 'C'])
+plt.title('堆叠面积图', fontsize=14)
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% elif plot_name == 'hexbin' %}
+# 绘制六边形分箱图
+np.random.seed(42)
+x = np.random.normal(0, 1, 1000)
+y = x + np.random.normal(0, 0.5, 1000)
+plt.hexbin(x, y, gridsize=20, cmap=COLOR_SCHEMES[color_scheme])
+plt.colorbar(label='计数')
+plt.title('六边形分箱图', fontsize=14)
+                    {% elif plot_name == 'error_bar' %}
+# 绘制误差条形图
+x = np.arange(5)
+y = np.random.randint(10, 30, 5)
+error = np.random.randint(1, 5, 5)
+plt.errorbar(x, y, yerr=error, fmt='o', color=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.6),
+            capsize=5, capthick=1, ecolor=plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(0.8))
+plt.title('误差条形图', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% elif plot_name == 'contour' %}
+# 绘制等高线图
+x = np.linspace(-3, 3, 100)
+y = np.linspace(-3, 3, 100)
+X, Y = np.meshgrid(x, y)
+Z = np.sin(np.sqrt(X**2 + Y**2))
+plt.contour(X, Y, Z, cmap=COLOR_SCHEMES[color_scheme])
+plt.colorbar(label='值')
+plt.title('等高线图', fontsize=14)
+                    {% elif plot_name == 'gantt' %}
+# 绘制甘特图
+tasks = ['Task A', 'Task B', 'Task C', 'Task D']
+starts = [1, 2, 4, 6]
+durations = [2, 3, 2, 1]
+colors = [plt.cm.get_cmap(COLOR_SCHEMES[color_scheme])(i/3) for i in range(4)]
+for i, (task, start, duration) in enumerate(zip(tasks, starts, durations)):
+    plt.barh(i, duration, left=start, color=colors[i])
+plt.yticks(range(len(tasks)), tasks)
+plt.xlabel('时间')
+plt.title('甘特图', fontsize=14)
+plt.grid(True, linestyle='--', alpha=0.7)
+                    {% endif %}</div>
+                    <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+    function copyCode(button) {
+        const codeSection = button.previousElementSibling;
+        const textArea = document.createElement('textarea');
+        textArea.value = codeSection.textContent;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        button.textContent = '已复制！';
+        setTimeout(() => {
+            button.textContent = '复制代码';
+        }, 2000);
+    }
+
+    function updateColorScheme() {
+        const scheme = document.getElementById('colorScheme').value;
+        window.location.href = '/?color_scheme=' + scheme;
+    }
+
+    function updateColorPreview() {
+        const scheme = document.getElementById('colorScheme').value;
+        const preview = document.getElementById('colorPreview');
+        preview.style.background = `linear-gradient(to right, ${getColorStops(scheme)})`;
+    }
+
+    function getColorStops(scheme) {
+        const stops = [];
+        for(let i = 0; i <= 1; i += 0.2) {
+            stops.push(`var(--${scheme}-${Math.floor(i * 100)})`); 
+        }
+        return stops.join(', ');
+    }
+
+    document.getElementById('colorScheme').addEventListener('change', updateColorPreview);
+    updateColorPreview();
+    </script>
+    <style>
+        :root {
+            --viridis-0: #440154;
+            --viridis-20: #414487;
+            --viridis-40: #2a788e;
+            --viridis-60: #22a884;
+            --viridis-80: #7ad151;
+            --viridis-100: #fde725;
+
+            --plasma-0: #0d0887;
+            --plasma-20: #6a00a8;
+            --plasma-40: #b12a90;
+            --plasma-60: #e16462;
+            --plasma-80: #fca636;
+            --plasma-100: #f0f921;
+
+            --inferno-0: #000004;
+            --inferno-20: #420a68;
+            --inferno-40: #932667;
+            --inferno-60: #dd513a;
+            --inferno-80: #fca50a;
+            --inferno-100: #fcffa4;
+
+            --magma-0: #000004;
+            --magma-20: #3b0f70;
+            --magma-40: #8c2981;
+            --magma-60: #de4968;
+            --magma-80: #fe9f6d;
+            --magma-100: #fcfdbf;
+
+            --cividis-0: #00224e;
+            --cividis-20: #274d8c;
+            --cividis-40: #4c7b9e;
+            --cividis-60: #7db0a8;
+            --cividis-80: #b9d7a6;
+            --cividis-100: #ffea46;
+
+            --coolwarm-0: #3b4cc0;
+            --coolwarm-20: #7495f1;
+            --coolwarm-40: #b4c4fe;
+            --coolwarm-60: #fec4c3;
+            --coolwarm-80: #f89598;
+            --coolwarm-100: #b40426;
+
+            --rainbow-0: #6e40aa;
+            --rainbow-20: #1c83ed;
+            --rainbow-40: #1ee646;
+            --rainbow-60: #d0e11d;
+            --rainbow-80: #f66c19;
+            --rainbow-100: #ff0000;
+
+            --RdYlBu-0: #a50026;
+            --RdYlBu-20: #f46d43;
+            --RdYlBu-40: #fee090;
+            --RdYlBu-60: #e0f3f8;
+            --RdYlBu-80: #74add1;
+            --RdYlBu-100: #313695;
+
+            --spectral-0: #9e0142;
+            --spectral-20: #f46d43;
+            --spectral-40: #fee08b;
+            --spectral-60: #d9ef8b;
+            --spectral-80: #66c2a5;
+            --spectral-100: #5e4fa2;
+        }
+    </style>
+</body>
+</html>
